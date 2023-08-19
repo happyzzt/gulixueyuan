@@ -1,7 +1,13 @@
 package com.atguigu.gulimall.product.service.impl;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -26,4 +32,31 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         return new PageUtils(page);
     }
 
+    @Override
+    public List<CategoryEntity> listWithTree() {
+        //查询所以分类
+        List<CategoryEntity> entityList = baseMapper.selectList(null);
+        //筛选出所有一级分类
+        List<CategoryEntity> level_1 = entityList.stream().filter(e -> e.getParentCid() == 0)
+                .sorted(Comparator.comparingInt(menu -> (menu.getSort() == null ? 0 : menu.getSort())))
+                .collect(Collectors.toList());
+
+        for (CategoryEntity entity : level_1) {
+            list2Tree(entity, entityList);
+        }
+
+        return level_1;
+    }
+
+    private void list2Tree(CategoryEntity parentEntity, List<CategoryEntity> list) {
+        Long catId = parentEntity.getCatId();
+        List<CategoryEntity> entityList = list.stream().filter(e -> e.getParentCid() == catId)
+                .sorted(Comparator.comparingInt(menu -> (menu.getSort() == null ? 0 : menu.getSort()))).collect(Collectors.toList());
+        if (!entityList.isEmpty()) {
+            parentEntity.setChildren(entityList);
+            for (CategoryEntity categoryEntity : entityList) {
+                list2Tree(categoryEntity, list);
+            }
+        }
+    }
 }
