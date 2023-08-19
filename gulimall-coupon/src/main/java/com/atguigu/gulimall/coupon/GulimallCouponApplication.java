@@ -15,11 +15,4 @@ public class GulimallCouponApplication {
         SpringApplication.run(GulimallCouponApplication.class, args);
     }
 
-//    @RestController
-//    class EchoController {
-//        @GetMapping(value = "/echo/{string}")
-//        public String echo(@PathVariable String string) {
-//            return string;
-//        }
-//    }
 }
